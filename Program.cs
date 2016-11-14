@@ -21,7 +21,7 @@ namespace StrangerSpotify
         static bool SpotifyIsPlaying, SpotifyIsAdPlaying;
         static Track SpotifyCurrentTrack = null;
         static Track SpotifyLastTrack = null;
-        static string SpotifyArtistName, SpotifyTrackName, SpotifyCurrentTimeString;
+        static string SpotifyArtistName, SpotifyTrackName;
         static double SpotifyCurrentTimeSeconds, SpotifyTotalTimeSeconds;
         static int SpotifyTrackNumber = 0;
         static List<string> SpotifyPreviousTracks = new List<string>();
@@ -70,19 +70,12 @@ namespace StrangerSpotify
         public static void Register() {
             UpdateTrack();
 
+            //register the events we want to listen for
             Spotify.OnTrackChange += Spotify_OnTrackChange;
             Spotify.OnPlayStateChange += Spotify_OnPlayStateChange;
             Spotify.OnTrackTimeChange += Spotify_OnTrackTimeChange;
 
             Spotify.ListenForEvents = true;
-        }
-
-        private static string formatTime(double sec) {
-            TimeSpan span = TimeSpan.FromSeconds(sec);
-            String secs = span.Seconds.ToString(), mins = span.Minutes.ToString();
-            if (secs.Length < 2)
-                secs = "0" + secs;
-            return mins + ":" + secs;
         }
 
         static void Spotify_OnPlayStateChange(object sender, PlayStateEventArgs e) {
@@ -119,9 +112,11 @@ namespace StrangerSpotify
 
         static void UpdateTime(double time) {
             SpotifyCurrentTimeSeconds = time;
-            SpotifyCurrentTimeString = formatTime(time);
         }
 
+        /// <summary>
+        /// Read track info from Spotify API and update local variables
+        /// </summary>
         private static void UpdateTrack() {
             if (Spotify == null) {
                 return;
@@ -129,6 +124,7 @@ namespace StrangerSpotify
 
             StatusResponse status = Spotify.GetStatus();
 
+            //check if an ad is playing
             if (status == null || status.Track == null) {
                 SpotifyIsAdPlaying = true;
                 SpotifyArtistName = "";
@@ -138,12 +134,13 @@ namespace StrangerSpotify
                 SpotifyIsAdPlaying = false;
             }
 
+            SpotifyCurrentTrack = status.Track;
+
             if ((!status.NextEnabled && !status.PrevEnabled) ||
-                (status.Track.AlbumResource == null || status.Track.ArtistResource == null)) {
+                (SpotifyCurrentTrack.AlbumResource == null || SpotifyCurrentTrack.ArtistResource == null)) {
+                //invalid
                 return;
             }
-
-            SpotifyCurrentTrack = status.Track;
             
             if (SpotifyCurrentTrack != null) {
                 SpotifyArtistName = SpotifyCurrentTrack.ArtistResource.Name;
@@ -152,6 +149,7 @@ namespace StrangerSpotify
 
                 SpotifyTrackNumber++;
                 if (SpotifyTrackNumber % TriggerMod == 0) {
+                    //Launch a new async task
                     new Task(TriggerAction).Start();
                 }
 
