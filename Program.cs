@@ -21,10 +21,7 @@ namespace StrangerSpotify
         static bool SpotifyIsPlaying, SpotifyIsAdPlaying;
         static Track SpotifyCurrentTrack = null;
         static Track SpotifyLastTrack = null;
-        static string SpotifyArtistName, SpotifyTrackName;
-        static double SpotifyCurrentTimeSeconds, SpotifyTotalTimeSeconds;
         static int SpotifyTrackNumber = 0;
-        static List<string> SpotifyPreviousTracks = new List<string>();
 
         static void Main(string[] args) {
 
@@ -110,10 +107,6 @@ namespace StrangerSpotify
             UpdateTime(e.TrackTime);
         }
 
-        static void UpdateTime(double time) {
-            SpotifyCurrentTimeSeconds = time;
-        }
-
         /// <summary>
         /// Read track info from Spotify API and update local variables
         /// </summary>
@@ -127,8 +120,6 @@ namespace StrangerSpotify
             //check if an ad is playing
             if (status == null || status.Track == null) {
                 SpotifyIsAdPlaying = true;
-                SpotifyArtistName = "";
-                SpotifyTrackName = null;
                 return;
             } else {
                 SpotifyIsAdPlaying = false;
@@ -143,9 +134,6 @@ namespace StrangerSpotify
             }
             
             if (SpotifyCurrentTrack != null) {
-                SpotifyArtistName = SpotifyCurrentTrack.ArtistResource.Name;
-                SpotifyTrackName = SpotifyCurrentTrack.TrackResource.Name;
-                SpotifyTotalTimeSeconds = SpotifyCurrentTrack.Length;
 
                 SpotifyTrackNumber++;
                 if (SpotifyTrackNumber % TriggerMod == 0) {
@@ -153,7 +141,7 @@ namespace StrangerSpotify
                     new Task(TriggerAction).Start();
                 }
 
-                Console.WriteLine(String.Format("Spotify is playing: {0}: {1} - {2}", SpotifyTrackNumber, SpotifyArtistName, SpotifyTrackName));
+                Console.WriteLine(String.Format("Spotify is playing: {0}: {1} - {2}", SpotifyTrackNumber, SpotifyCurrentTrack.ArtistResource.Name, SpotifyCurrentTrack.TrackResource.Name));
                 
                 SpotifyLastTrack = SpotifyCurrentTrack;
             }
