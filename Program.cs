@@ -70,7 +70,6 @@ namespace StrangerSpotify
             //register the events we want to listen for
             Spotify.OnTrackChange += Spotify_OnTrackChange;
             Spotify.OnPlayStateChange += Spotify_OnPlayStateChange;
-            Spotify.OnTrackTimeChange += Spotify_OnTrackTimeChange;
 
             Spotify.ListenForEvents = true;
         }
@@ -97,14 +96,6 @@ namespace StrangerSpotify
             }
 
             UpdateTrack();
-        }
-
-        static void Spotify_OnTrackTimeChange(object sender, TrackTimeChangeEventArgs e) {
-            if (SpotifyIsAdPlaying) {
-                return;
-            }
-
-            UpdateTime(e.TrackTime);
         }
 
         /// <summary>
